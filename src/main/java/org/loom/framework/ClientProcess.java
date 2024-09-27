@@ -1,4 +1,4 @@
-package org.java.scoped;
+package org.loom.framework;
 
 import java.util.Map;
 
@@ -7,7 +7,6 @@ import java.util.Map;
  * processing code.
  */
 public class ClientProcess implements Process {
-	RequestAttributes requestAttributes = new RequestAttributes();
 
 	public void executeProcess() {
 		try {
@@ -16,7 +15,7 @@ public class ClientProcess implements Process {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Map<String, String> requestValues = requestAttributes.getValues();
+		Map<String, String> requestValues = RequestAttributes.getValues();
 		System.out.println("The request value: " + requestValues.get("name"));
 	}
 }

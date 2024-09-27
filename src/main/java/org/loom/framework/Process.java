@@ -1,4 +1,4 @@
-package org.java.scoped;
+package org.loom.framework;
 
 public interface Process {
 	public void executeProcess();
