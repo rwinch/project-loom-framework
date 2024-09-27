@@ -26,6 +26,16 @@ This startups a simple web server running on port `http://localhost:8080`
 
 Currently project is just pulling off the query value and sys outing it with a short delay. 
 
+## About the Project
+
+The project is a simple web server that will intercept the query value. 
+
+* [org.loom.framework.Server.java](src/main/java/org/loom/framework/Server.java) - The main class.
+* [org.loom.framework.ScopedValueHandler](src/main/java/org/loom/framework/ScopedvalueHandler.java) - Intercepts the request and places values in a `Map<String, String>` that is held by a `ScopedValue`. Currently on the query is being retrieved. 
+* [org.loom.framework.RequestAttribute.java](src/main/java/org/loom/framework/RequestAttribute.java) - Helper class that allows for easy referencing of `ScopedValue` instance.
+* [org.loom.framework.Process.java](src/main/java/org/loom/framework/Process.java) - A rough equivalent to a Servlet Filter
+* [org.loom.framework.ClientProcess.java](src/main/java/org/loom/framework/ClientProcess.java) - A concrete implementation of Process that's meant to represent uer code that can access a Scoped Value.
+
 ## Virtual Threads
 
 The central feature of Project Loom, virtual threads separate the concept of threads into two distinct parts. The Platform Thread, which is functionally similar to legacy Threads in, which have a one-to-one relationship to OS threads. And Virtual Threads, which exist in memory and run on top of platform threads. For a high-level overview of virtual threads, see this video: [https://www.youtube.com/watch?v=bOnIYy3Y5OA](https://www.youtube.com/watch?v=bOnIYy3Y5OA). For a more in-depth explanation on virtual threads be sure to read the [JEP 444](https://openjdk.org/jeps/444). 
