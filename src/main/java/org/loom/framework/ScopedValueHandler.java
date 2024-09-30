@@ -2,6 +2,7 @@ package org.loom.framework;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.StructuredTaskScope;
@@ -19,25 +20,28 @@ public class ScopedValueHandler implements HttpHandler {
 		this.realHandler = realHandler;
 	}
 
-	
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
-		RequestAttributes.getRequestAttributes();
 		URI uri = exchange.getRequestURI();
 		String query = uri.getQuery();
-		Map<String, String> requestValues = Map.of("name", query);
+		Map<String, String> requestValues = new HashMap<String, String>();
+		requestValues.put("name", query);
 		ScopedValue.<Map<String, String>>where(RequestAttributes.getRequestAttributes(), requestValues).run(() -> {
-			Joiner<String, Void> joiner = Joiner.awaitAll();
+			Joiner<String, Void> joiner = Joiner.awaitAllSuccessfulOrThrow();
 			try (var scope = StructuredTaskScope.open(joiner)) {
 				scope.fork(() -> {
 					for (Process proc : processes) {
 						proc.executeProcess();
 					}
-					
+					try {
+						realHandler.handle(exchange);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+
 				});
-				realHandler.handle(exchange);
 				scope.join();
-			} catch (Exception e){
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		});

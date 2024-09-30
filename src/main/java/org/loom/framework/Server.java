@@ -15,7 +15,9 @@ public class Server {
 	public static void main(String[] args) throws Exception {
 
 		HttpServer s = HttpServer.create(LOOPBACK_ADDR, 0);
-		ScopedValueHandler handler = new ScopedValueHandler(List.of(new ClientProcess()), HttpHandlers.of(200, new Headers(), "Success"));
+		ScopedValueHandler handler = new ScopedValueHandler(
+				List.of(new ClientProcess(), new UpstreamProcess(), new DownstreamProcess()),
+				HttpHandlers.of(200, new Headers(), "Success"));
 		s.createContext("/", handler);
 
 		s.start();

@@ -1,7 +1,5 @@
 package org.loom.framework;
 
-import java.util.Map;
-
 /**
  * Representative of enterprise developer implementing business meaningful
  * processing code.
@@ -19,7 +17,6 @@ public class ClientProcess implements Process {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Map<String, String> requestValues = RequestAttributes.getValues();
-		System.out.println("The request value: " + requestValues.get("name"));
+		System.out.println("The request value: " + RequestAttributes.getValueByName("name"));
 	}
 }

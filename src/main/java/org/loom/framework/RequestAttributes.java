@@ -15,8 +15,11 @@ public class RequestAttributes {
 		return REQUEST_ATTRIBUTES;
 	}
 	
-	public static Map<String, String> getValues(){
-		return REQUEST_ATTRIBUTES.get();
+	public static String getValueByName(String valueName) {
+		return REQUEST_ATTRIBUTES.get().get(valueName);
 	}
 	
+	public static String updateValue(String valueName, String newValue) {
+		return REQUEST_ATTRIBUTES.get().put(valueName, newValue);
+	}
 }
