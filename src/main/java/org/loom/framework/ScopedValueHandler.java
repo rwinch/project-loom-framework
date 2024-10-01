@@ -12,10 +12,10 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class ScopedValueHandler implements HttpHandler {
-	private List<Process> processes;
+	private List<Service> processes;
 	private HttpHandler realHandler;
 
-	public ScopedValueHandler(List<Process> processes, HttpHandler realHandler) {
+	public ScopedValueHandler(List<Service> processes, HttpHandler realHandler) {
 		this.processes = processes;
 		this.realHandler = realHandler;
 	}
@@ -30,8 +30,8 @@ public class ScopedValueHandler implements HttpHandler {
 			Joiner<String, Void> joiner = Joiner.awaitAllSuccessfulOrThrow();
 			try (var scope = StructuredTaskScope.open(joiner)) {
 				scope.fork(() -> {
-					for (Process proc : processes) {
-						proc.executeProcess();
+					for (Service proc : processes) {
+						proc.doStuff();
 					}
 					try {
 						realHandler.handle(exchange);

@@ -8,15 +8,16 @@ package org.loom.framework;
  * requests come through, the value that is printed by sout is associated with
  * the original request and not the latest value.
  */
-public class ClientProcess implements Process {
+public class ClientProcess implements Service {
 
-	public void executeProcess() {
+	public void doStuff() {
 		try {
 			Thread.sleep(5000L);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println("Thread info: " + Thread.currentThread().toString());
 		System.out.println("The request value: " + RequestAttributes.getValueByName("name"));
 	}
 }
