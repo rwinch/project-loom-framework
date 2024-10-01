@@ -22,6 +22,12 @@ To run the project:
 java --enable-preview -jar target/loom-framework-0.0.1-SNAPSHOT.jar
 ```
 
+To run the project as a Tomcat WebApp:
+
+```
+java --enable-preview -cp target/loom-framework-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.loom.framework.TomcatServer
+```
+
 This startups a simple web server running on port `http://localhost:8080`
 
 Currently project is just pulling off the query value and sys outing it with a short delay. 
