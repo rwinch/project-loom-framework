@@ -1,6 +1,8 @@
 # Using Project Loom in a Framework
 
-This project is demonstrating how to use [Project Loom](https://openjdk.org/projects/loom/) features; Virtual Threads, Structured Concurrency, and Scoped Values, within a framework context. 
+This project is demonstrating how to use [Project Loom](https://openjdk.org/projects/loom/) features; Virtual Threads, Structured Concurrency, and Scoped Values, within a framework context. Though this project primarily focuses on Scoped Values, as they are the most relevant in the framework context. 
+
+For simple examples of using Structured Concurrency and Scoped Values, be sure to check out the [Loominated Java repo](https://github.com/wkorando/loominated-java). 
 
 ## Requirements
 
@@ -16,31 +18,40 @@ To build the project:
 mvn clean package
 ```
 
-To run the project:
-
-```
-java --enable-preview -jar target/loom-framework-0.0.1-SNAPSHOT.jar
-```
-
 To run the project as a Tomcat WebApp:
 
 ```
-java --enable-preview -cp target/loom-framework-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.loom.framework.TomcatServer
+java --enable-preview -cp target/loom-framework-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.loom.framework.tomcat.TomcatServer
 ```
 
-This startups a simple web server running on port `http://localhost:8080`
+To run the project as a Jetty WebApp:
+
+```
+java --enable-preview -cp target/loom-framework-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.loom.framework.jetty.JettyServer
+```
+
+This startups a simple web server running on port `http://localhost:8080/?fname=[first-name]&lname=[last-name]`
 
 Currently project is just pulling off the query value and sys outing it with a short delay. 
 
 ## About the Project
 
-The project is a simple web server that will intercept the query value. 
+The project is a simple web application, that can be run as either a Tomcat or Jetty application.  
 
-* [org.loom.framework.Server.java](src/main/java/org/loom/framework/Server.java) - The main class.
-* [org.loom.framework.ScopedValueHandler](src/main/java/org/loom/framework/ScopedvalueHandler.java) - Intercepts the request and places values in a `Map<String, String>` that is held by a `ScopedValue`. Currently on the query is being retrieved. 
-* [org.loom.framework.RequestAttribute.java](src/main/java/org/loom/framework/RequestAttribute.java) - Helper class that allows for easy referencing of `ScopedValue` instance.
-* [org.loom.framework.Process.java](src/main/java/org/loom/framework/Process.java) - A rough equivalent to a Servlet Filter
-* [org.loom.framework.ClientProcess.java](src/main/java/org/loom/framework/ClientProcess.java) - A concrete implementation of Process that's meant to represent uer code that can access a Scoped Value.
+* [org.loom.framework.RequestAttribute](src/main/java/org/loom/framework/RequestAttributes.java) - Helper class that allows for easy referencing of `ScopedValue` instance.
+   * [org.loom.framework.RequestAttribute](src/main/java/org/loom/framework/FilterAttributes.java) - Like `RequestAttributes` but for "security" values. Primarily to demonstrate multiple `ScopedValues` can be used and referenced. 
+* [org.loom.framework.ScopedValueFilter](src/main/java/org/loom/framework/ScopedValueFilter.java) - `Filter` class that retrieves values off a request, in this case the query values of `fname` and `lanme` and adds them to the `ScopedValue` that is held by `RequestAttributes`.
+   * [org.loom.framework.ScopedValueFilter](src/main/java/org/loom/framework/SecurtiyScopedValueFilter.java) - Essentially the same as `RequestAttributes`, but adds "security" values (in this case simply request id) to a ScopedValue. 
+* [org.loom.framework.Service](src/main/java/org/loom/framework/Service.java) - Representative of arbitrary client callee code that is performing business meaningful work. Used to demonstrate `ScopedValues` can be referenced by callee code. 
+   * [org.loom.framework.Service](src/main/java/org/loom/framework/DatabaseUpdatedService.java) - Implementation of `Service` that writes to a database (in-memory H2). It (unnecessarily) uses a `StructuredTaskScope` to perform this work. This is to demonstrate that the child threads that are spawned when `StructuredTaskScope` forks a `Subtask` have access to `ScopedValue` (this is further covered under [Scoped Values](#scoped-values))
+* [org.loom.framework.WelcomeServlet](src/main/java/org/loom/framework/WelcomeServlet.java) - Simple Servlet implementation that prints out the results of the request. 
+
+
+## Providing Feedback
+
+The goal of this project is to encourage feedback on Project Loom features. To that end, feedback should be directed to the Project Loom devlist found here: https://mail.openjdk.org/mailman/listinfo/loom-dev
+
+For feedback about this project itself, create and issue or submit a PR. 
 
 ## Virtual Threads
 
@@ -95,10 +106,14 @@ public class ScopeValueExample {
 }
 ```
 
-Here, imaging the commented sleep code is not there, it seems the child virtual thread *should* have access to the Scoped Value Name. Running the above code as-is would result in a `java.util.NoSuchElementException`.
+Here, imagine the commented sleep code is not there, it seems the child virtual thread *should* have access to the `ScopedValue` `NAME`. Running the above code as-is would result in a `java.util.NoSuchElementException`.
 
-Uncommenting the `Thread.sleep()`, reveals the reason for this behavior. The parent thread where the Scoped Value was available would have already left that scope by the time the child thread would had attempted to reference `NAME`. Outside of Structured Concurrency, which requires a `.join()`, to be called, there are no runtime guarantees to ensure that a Scoped Value would still be in scope. 
+Uncommenting the `Thread.sleep()`, reveals the reason for this behavior. The parent thread where the `ScopedValue` was available would have already left that scope by the time the child thread would had attempted to reference `NAME`. Outside of Structured Concurrency, which requires a `.join()`, to be called, there are no runtime guarantees to ensure that a `ScopedValue` would still be in scope. 
+
+### ScopedValue vs ThreadLocal
+
+Scoped Values and Thread Locals exist in the same domain space; indirect passing of data to callees. However Scoped Values are not a "drop in" replacement for Thread Locals. As the names imply, Scoped Values exist within a specific scope of an application, while a ThreadLocal is attached to a specific thread.  
 
 ## Notice
 
-This is a project meant to provide trivial examples of using Project Loom within the context of a framework. It has not be exhaustively reviewed for potential vulnerabilities. The code of this project wasn't written with the intent that it could be copy and pasted into production code and pushed to a live service, without any review to ensuring it meets an organizations security and data privacy requirements. 
+This is a project meant to provide trivial examples of using Project Loom within the context of a framework. It has not be exhaustively reviewed for potential vulnerabilities. The code of this project wasn't written with the intent that it should be copy and pasted into production code and pushed to a live service, without it first going through security review to ensure code meets an organization's security and data privacy requirements. 
